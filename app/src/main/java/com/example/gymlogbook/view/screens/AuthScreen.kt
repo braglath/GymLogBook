@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,10 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.gymlogbook.R
 import com.example.gymlogbook.ui.theme.DarkGray
+import com.example.gymlogbook.ui.theme.FadedWhite
 import com.example.gymlogbook.view.common.CheckSignedIn
 import com.example.gymlogbook.view.common.CustomButton
 import com.example.gymlogbook.view.common.CustomTextField
 import com.example.gymlogbook.viewmodel.AuthViewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 @Composable
@@ -69,6 +72,16 @@ fun AuthScreen(navController: NavController, vm: AuthViewModel) {
         val onLoginClick = {
             focusManager.clearFocus()
             vm.loginBtnClick(emailState.value.text, pwdState.value.text)
+        }
+
+
+        // Change the status bar color when this Composable is composed
+        val systemUiController = rememberSystemUiController()
+        SideEffect {
+            systemUiController.setStatusBarColor(
+                color = FadedWhite,
+                darkIcons = true
+            )
         }
 
         Column(

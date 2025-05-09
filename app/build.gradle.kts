@@ -61,6 +61,9 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+// change status bar color
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.5-beta")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

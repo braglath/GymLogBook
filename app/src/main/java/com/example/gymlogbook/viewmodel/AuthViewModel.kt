@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.example.gymlogbook.extensions.StringExtensions.isValidEmail
 import com.example.gymlogbook.extensions.StringExtensions.isValidPassword
 import com.example.gymlogbook.model.UserData
+import com.example.gymlogbook.services.Constants.INFO
 import com.example.gymlogbook.services.Constants.USERS
 import com.example.gymlogbook.services.Helper.showSnackbar
 import com.example.gymlogbook.services.Helper.showToast
@@ -25,10 +26,10 @@ class AuthViewModel @Inject constructor(
     val signedIn = mutableStateOf(false)
 
     init {
-//        showLoading()
-//        val currentUser = auth.currentUser
-//        signedIn.value = currentUser != null
-//        hideLoading()
+        showLoading()
+        val currentUser = auth.currentUser
+        signedIn.value = currentUser != null
+        hideLoading()
     }
 
 
@@ -97,6 +98,8 @@ class AuthViewModel @Inject constructor(
             email = email,
         )
         uid?.let {
+            // using same document ID
+//            db.collection(USERS).document(uid).collection(INFO).document(uid).set(userData)
             db.collection(USERS).document(uid).set(userData)
                 .addOnSuccessListener {
                     // auth user create, firestore data created, proceed to login
