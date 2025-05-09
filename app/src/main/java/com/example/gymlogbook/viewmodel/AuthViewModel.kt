@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import com.example.gymlogbook.extensions.StringExtensions.isValidEmail
 import com.example.gymlogbook.extensions.StringExtensions.isValidPassword
 import com.example.gymlogbook.model.UserData
-import com.example.gymlogbook.services.Constants.INFO
 import com.example.gymlogbook.services.Constants.USERS
 import com.example.gymlogbook.services.Helper.showSnackbar
 import com.example.gymlogbook.services.Helper.showToast

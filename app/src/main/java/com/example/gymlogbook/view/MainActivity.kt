@@ -33,8 +33,10 @@ import com.example.gymlogbook.ui.theme.GymLogBookTheme
 import com.example.gymlogbook.view.common.CustomProgressIndicator
 import com.example.gymlogbook.view.screens.AuthScreen
 import com.example.gymlogbook.view.screens.HomeScreen
+import com.example.gymlogbook.view.screens.LogWeightScreen
 import com.example.gymlogbook.viewmodel.AuthViewModel
 import com.example.gymlogbook.viewmodel.HomeViewModel
+import com.example.gymlogbook.viewmodel.LogWeightViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -102,6 +104,7 @@ fun MainApp() {
 sealed class DestinationScreen(val route: String) {
     object Auth : DestinationScreen("auth")
     object Home : DestinationScreen("home")
+    object LogWeight : DestinationScreen("logWeight")
 }
 
 
@@ -131,6 +134,10 @@ fun GymLogBookApp() {
         composable(DestinationScreen.Home.route) {
             val homeViewModel = hiltViewModel<HomeViewModel>()
             HomeScreen(navController, homeViewModel)
+        }
+        composable(DestinationScreen.LogWeight.route) {
+            val logWeightViewModel = hiltViewModel<LogWeightViewModel>()
+            LogWeightScreen(navController, logWeightViewModel)
         }
         // for common view model between pages, use format below
 //        navigation(

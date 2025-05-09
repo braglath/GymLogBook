@@ -5,4 +5,6 @@
     <string name="password">Password</string>
     <string name="letMeIn">Let me in..</string>
     <string name="home">Home</string>
+    <string name="submit">Submit</string>
+    <string name="logWeight">Log Weight</string>
 </resources>
