@@ -64,6 +64,8 @@ dependencies {
 // change status bar color
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.5-beta")
 
+    implementation("androidx.compose.material:material:1.5.4")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -1,6 +1,5 @@
 package com.example.gymlogbook.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -28,6 +27,7 @@ class LogWeightViewModel @Inject constructor(
     private val _weightsLog = mutableStateListOf<WeightData>()
     val weightsLog: List<WeightData> get() = _weightsLog
 
+    val loggedWeightData = mutableStateOf<WeightData?>(null)
     val isAlreadyLoggedToday = mutableStateOf(false)
 
     init {
@@ -41,7 +41,7 @@ class LogWeightViewModel @Inject constructor(
     // if no logged anything, then set new weight log
 
     fun onSubmitButtonClick(weight: Double) {
-        if (isAlreadyLoggedToday.value) {
+        if (loggedWeightData.value != null) {
             showToast("You have already logged today, editing today weight log")
             updateWeight(weight)
         } else {
@@ -50,9 +50,12 @@ class LogWeightViewModel @Inject constructor(
         }
     }
 
+
     private fun updateWeight(weight: Double) {
-        val weightDocId = weightsLog.firstOrNull()?.docId.toString()
-        logWeight(weight, weightDocId)
+        val weightDocId = loggedWeightData.value?.docId
+        weightDocId?.let {
+            logWeight(weight, weightDocId)
+        }
     }
 
     private fun logWeight(weight: Double, docId: String? = null) {
@@ -66,7 +69,7 @@ class LogWeightViewModel @Inject constructor(
 
         val weightData = WeightData(
             weight = weight,
-            timestamp = timestamp,
+            timestamp = loggedWeightData.value?.timestamp ?: timestamp,
             docId = documentId
         )
 
@@ -85,6 +88,20 @@ class LogWeightViewModel @Inject constructor(
             }
     }
 
+    fun deleteWeightLog(weightData: WeightData) {
+        val uid = auth.currentUser?.uid ?: return
+        showLoading()
+        db.collection(USERS).document(uid).collection(WEIGHTS).document(weightData.docId!!).delete()
+            .addOnSuccessListener {
+                showToast("weight logged deleted successfully")
+                getWeightLogs()
+            }
+            .addOnFailureListener {
+                showToast("error deleting weight log: ${it.localizedMessage}")
+                hideLoading()
+            }
+    }
+
     private fun getWeightLogs() {
         val uid = auth.currentUser?.uid ?: return
         showLoading()
@@ -98,16 +115,25 @@ class LogWeightViewModel @Inject constructor(
                 val docs = weights.toObjects(WeightData::class.java).toList()
 
                 // change to default values
-                _weightsLog.clear()
-                isAlreadyLoggedToday.value = false
+                clearValues()
 
+                // update values
                 _weightsLog.addAll(docs)
+
                 if (_weightsLog.isNotEmpty()) {
                     val alreadyLoggedToday = isCurrentDate(docs.first())
                     isAlreadyLoggedToday.value = alreadyLoggedToday
+                    if (isAlreadyLoggedToday.value) {
+                        // first one will be today
+                        loggedWeightData.value = docs.firstOrNull()
+                    } else {
+                        loggedWeightData.value = null
+                    }
                 } else {
                     // no docs found
+                    // not logged for the day
                     isAlreadyLoggedToday.value = false
+                    loggedWeightData.value = null
                 }
                 hideLoading()
             }
@@ -125,7 +151,7 @@ class LogWeightViewModel @Inject constructor(
         return false
     }
 
-    private fun isToday(timestamp: Timestamp): Boolean {
+    fun isToday(timestamp: Timestamp): Boolean {
         // Convert the Timestamp to a Date
         val calendarTimestamp = Calendar.getInstance().apply { time = timestamp.toDate() }
 
@@ -136,5 +162,11 @@ class LogWeightViewModel @Inject constructor(
         return calendarTimestamp.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                 calendarTimestamp.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
                 calendarTimestamp.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
+    }
+
+    private fun clearValues() {
+        _weightsLog.clear()
+        loggedWeightData.value = null
+        isAlreadyLoggedToday.value = false
     }
 }
