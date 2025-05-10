@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Gym Log Book</string>
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="letMeIn">Let me in..</string>
+    <string name="home">Home</string>
+    <string name="submit">Submit</string>
+    <string name="logWeight">Log Weight</string>
+</resources>
