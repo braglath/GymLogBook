@@ -25,15 +25,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.gymlogbook.R
@@ -50,6 +54,7 @@ import com.example.gymlogbook.view.common.OnlyTextButton
 import com.example.gymlogbook.viewmodel.LogWeightViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.Timestamp
+
 
 @Composable
 fun LogWeightScreen(navController: NavController, vm: LogWeightViewModel) {
@@ -68,7 +73,6 @@ fun LogWeightScreen(navController: NavController, vm: LogWeightViewModel) {
         containerColor = LightGray,
         topBar = {
             CustomTopAppBar(stringResource(R.string.logWeight)) {
-//                vm.logout()
                 navController.popBackStack()
             }
         },
@@ -84,121 +88,8 @@ fun LogWeightScreen(navController: NavController, vm: LogWeightViewModel) {
                         .imePadding(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(halfHeight)
-                            .padding(8.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                        colors = CardDefaults.cardColors(containerColor = FadedWhite)
-                    ) {
-                        val weightTextFieldValue = remember { mutableStateOf(TextFieldValue()) }
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Text(
-                                "Enter weight",
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            val date = if (vm.loggedWeightData.value != null) {
-                                val timestamp =
-                                    vm.loggedWeightData.value?.timestamp
-                                if (timestamp == null) {
-                                    "Today"
-                                } else {
-                                    val isToday = vm.isToday(timestamp)
-                                    if (isToday) "Today" else timestamp.formatToDate()
-                                }
-                            } else {
-                                "Today"
-                            }
-
-                            LoggingDate(date = date.toString())
-
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                CustomWeightTextField(
-                                    inputValue = weightTextFieldValue.value,
-                                    onValueChanged = { weightTextFieldValue.value = it },
-                                    label = "Weight",
-                                )
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceEvenly
-                                ) {
-
-                                    CustomButton("Submit") {
-                                        val weight =
-                                            weightTextFieldValue.value.text.toDoubleOrNull()
-                                        if (weight != null) {
-                                            focusManager.clearFocus()
-                                            vm.onSubmitButtonClick(weight)
-                                        }
-                                    }
-
-                                    if (vm.loggedWeightData.value != null && vm.isToday(
-                                            vm.loggedWeightData.value?.timestamp ?: Timestamp.now()
-                                        ) != true
-                                    ) {
-                                        OnlyTextButton(label = "Log for Today") {
-                                            vm.loggedWeightData.value = null
-                                            weightTextFieldValue.value = TextFieldValue()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-
-                    // Second Card: Top Half
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(halfHeight)
-                            .padding(8.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                        colors = CardDefaults.cardColors(containerColor = FadedWhite)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Text(
-                                "History",
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            LazyColumn {
-                                items(vm.weightsLog.size) { index ->
-                                    val weight = vm.weightsLog[index]
-                                    WeightTile(
-                                        weight, vm
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    LogHeightCard(height = halfHeight, vm = vm, focusManager = focusManager)
+                    HistoryCard(height = halfHeight, vm = vm)
                 }
             }
         }
@@ -206,14 +97,180 @@ fun LogWeightScreen(navController: NavController, vm: LogWeightViewModel) {
 }
 
 @Composable
-fun LoggingDate(date: String) =
+fun LogHeightCard(height: Dp = 200.dp, vm: LogWeightViewModel, focusManager: FocusManager) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .padding(8.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = FadedWhite)
+    ) {
+        val todayString = stringResource(R.string.today)
+        val date = if (vm.loggedWeightData.value != null) {
+            val timestamp =
+                vm.loggedWeightData.value?.timestamp
+            if (timestamp == null) {
+                todayString
+            } else {
+                val isToday = vm.isToday(timestamp)
+                if (isToday) todayString else timestamp.formatToDate()
+            }
+        } else {
+            todayString
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            val enterWeightString = stringResource(R.string.enterWeight)
+            Text(
+                enterWeightString,
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+            LoggingDate(date = date.toString())
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                val weightTextFieldValue = remember { mutableStateOf(TextFieldValue()) }
+                val weightString = stringResource(R.string.weight)
+
+                CustomWeightTextField(
+                    inputValue = weightTextFieldValue.value,
+                    onValueChanged = { weightTextFieldValue.value = it },
+                    label = weightString,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+                SubmitLogTodayButtons(
+                    weightTextFieldValue = weightTextFieldValue,
+                    focusManager = focusManager,
+                    vm = vm
+                )
+
+            }
+        }
+    }
+}
+
+@Composable
+fun SubmitLogTodayButtons(
+    weightTextFieldValue: MutableState<TextFieldValue>,
+    focusManager: FocusManager,
+    vm: LogWeightViewModel
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        val submitString = stringResource(R.string.submit)
+
+        CustomButton(submitString) {
+            val weight =
+                weightTextFieldValue.value.text.toDoubleOrNull()
+            if (weight != null) {
+                focusManager.clearFocus()
+                vm.onSubmitButtonClick(weight)
+            }
+        }
+
+        if (vm.loggedWeightData.value != null && vm.isToday(
+                vm.loggedWeightData.value?.timestamp ?: Timestamp.now()
+            ) != true
+        ) {
+            val logForTodayString = stringResource(R.string.logForToday)
+
+            OnlyTextButton(label = logForTodayString) {
+                vm.loggedWeightData.value = null
+                weightTextFieldValue.value = TextFieldValue()
+            }
+        }
+    }
+}
+
+
+@Composable
+fun HistoryCard(height: Dp = 200.dp, vm: LogWeightViewModel) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .padding(8.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = FadedWhite)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            val historyString = stringResource(R.string.history)
+
+            Text(
+                historyString,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            WeightList(vm)
+        }
+    }
+}
+
+@Composable
+fun WeightList(vm: LogWeightViewModel) {
+    LazyColumn {
+        items(vm.weightsLog.size) { index ->
+            val weight = vm.weightsLog[index]
+            val isSelected = weight == vm.loggedWeightData.value
+            val todayString = stringResource(R.string.today)
+            val date =
+                if (weight.timestamp == null) {
+                    todayString
+                } else {
+                    val isToday = vm.isToday(weight.timestamp)
+                    if (isToday) todayString else weight.timestamp.formatToDate()
+                }
+            WeightTile(
+                weight = weight, isSelected = isSelected,
+                date = date,
+                onTileClick = {
+                    if (isSelected) {
+                        vm.loggedWeightData.value = null
+                    } else {
+                        vm.loggedWeightData.value = weight
+                    }
+                }, onDeleteClick = {
+                    vm.deleteWeightLog(weight)
+                }
+            )
+        }
+    }
+}
+
+@Preview(name = "LoggingDate", group = "LogWeightScreen")
+@Composable
+fun LoggingDate(date: String = "Today") =
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val loggingDateString = stringResource(R.string.loggingDate)
         Text(
-            "Logging Date:",
+            "${loggingDateString}:",
             style = MaterialTheme.typography.bodySmall
         )
         Text(
@@ -222,10 +279,30 @@ fun LoggingDate(date: String) =
         )
     }
 
+@Preview(name = "WeightTile", group = "LogWeightScreen")
+@Composable
+fun PreviewWeightTile() {
+    val isSelected = false
+    val weight = WeightData()
+    MaterialTheme {
+        WeightTile(
+            weight = weight, isSelected = isSelected,
+            date = "Today",
+            onTileClick = {},
+            onDeleteClick = {}
+        )
+    }
+}
 
 @Composable
-fun WeightTile(weight: WeightData, vm: LogWeightViewModel) {
-    val isSelected = weight == vm.loggedWeightData.value
+fun WeightTile(
+    weight: WeightData,
+    date: String,
+    isSelected: Boolean = false,
+    onTileClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -236,11 +313,7 @@ fun WeightTile(weight: WeightData, vm: LogWeightViewModel) {
             )
             .padding(16.dp)
             .clickable {
-                if (isSelected) {
-                    vm.loggedWeightData.value = null
-                } else {
-                    vm.loggedWeightData.value = weight
-                }
+                onTileClick.invoke()
             },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -248,17 +321,10 @@ fun WeightTile(weight: WeightData, vm: LogWeightViewModel) {
 
         Row {
 
-
-            val date =
-                if (weight.timestamp == null) {
-                    "Today"
-                } else {
-                    val isToday = vm.isToday(weight.timestamp)
-                    if (isToday) "Today" else weight.timestamp.formatToDate()
-                }
+            val kgString = stringResource(R.string.kg)
 
             Text(
-                text = "${weight.weight} Kg",
+                text = "${weight.weight} $kgString",
                 style = MaterialTheme.typography.bodyLarge
             )
             Text(
@@ -275,7 +341,7 @@ fun WeightTile(weight: WeightData, vm: LogWeightViewModel) {
             icon = Icons.Default.Delete,
             color = if (isSelected) FadedWhite else LightGray
         ) {
-            vm.deleteWeightLog(weight)
+            onDeleteClick.invoke()
         }
 
     }

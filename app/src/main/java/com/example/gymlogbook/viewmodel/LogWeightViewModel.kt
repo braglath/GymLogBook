@@ -18,8 +18,9 @@ import java.util.Calendar
 import java.util.UUID
 import javax.inject.Inject
 
+
 @HiltViewModel
-class LogWeightViewModel @Inject constructor(
+open class LogWeightViewModel @Inject constructor(
     val auth: FirebaseAuth,
     val db: FirebaseFirestore
 ) : ViewModel() {

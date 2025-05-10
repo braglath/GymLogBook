@@ -7,4 +7,13 @@
     <string name="home">Home</string>
     <string name="submit">Submit</string>
     <string name="logWeight">Log Weight</string>
+
+    // log weight screen
+    <string name="today">Today</string>
+    <string name="enterWeight">Enter Weight</string>
+    <string name="weight">Weight</string>
+    <string name="logForToday">Log for today</string>
+    <string name="history">History</string>
+    <string name="loggingDate">Logging Date</string>
+    <string name="kg">Kg</string>
 </resources>
